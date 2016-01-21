@@ -1,64 +1,118 @@
 <html>
 <head>
-<script src="http://ioserver-antrax.rhcloud.com:8000/socket.io/socket.io.js"></script>
-<script>
-      // Tell Socket.IO where to find the Flash component if the browser needs it.
-      WEB_SOCKET_SWF_LOCATION = 'http://ioserver-antrax.rhcloud.com:8000/socket.io/WebSocketMain.swf';
-    </script>
-</head>
-<body>
-	<h1>Socket.IO Demo</h1>
-
-	<!-- A log for messages -->
-	<div id="messages"
-		style="border: 1px solid #000; width: 100%; color: #0F0; background: #000; font-family: monospace;">
-		Connecting to server...<br />
-	</div>
+<script src="socket.io.js">
 	<script>
-      var messages = document.getElementById('messages');
+	// Tell Socket.IO where to find the Flash component if the browser needs it.
+	WEB_SOCKET_SWF_LOCATION = 'http://ioserver-antrax.rhcloud.com:8000/socket.io/WebSocketMain.swf';
+	//WEB_SOCKET_SWF_LOCATION = 'http://192.168.0.92:8000/socket.io/WebSocketMain.swf';
+</script>
+</head>
+<style>
+html, body {
+	border: 0;
+	padding: 0;
+}
 
-      //var socket = io.connect('http://localhost:8000');
-	  var socket = io.connect('http://ioserver-antrax.rhcloud.com:8000');
-      
-      socket.on('connect',
-        function() {
-          messages.innerHTML += 'Connected<br/>';	
+.barTitle {
+	height: auto;
+	display: block;
+	float: left;
+	width: 100%;
+	float: left;
+}
 
-          socket.emit('join', { name: 'pedro' });
-        });
+.divConsola {
+	height: 100%;
+	display: block;
+	float: left;
+	width: 100%;
+}
 
-      socket.on('message',
-         function(data) {
-           messages.innerHTML += 'message : "' + JSON.stringify(data) + '"<br/>';
+#messages {
+	overflow-y: scroll;
+	min-height: 50%;
+	max-height: 100%;
+}
 
-           socket.emit('myResponseType', { my: 'data' });
-        });
+#txtEnviar {
+	width: 100%;
+}
+</style>
+<body>
+	<div class="barTitle">
+		<h1>Consola GameAndroid v0.0.1</h1>
+		<button id="btnlimpiar">Limpiar</button>
+	</div>
+	<div class="divConsola">
+		<div id="messages"
+			style="border: 1px solid #000; width: 100%; color: #0F0; background: #000; font-family: monospace;">
+			Conectando al servidor...<br />
+		</div>
+		<div
+			style="border: 1px solid #000; width: 100%; color: #fff; background: #000; font-family: monospace;">
 
-      socket.on('join user',
-         function(data) {
-           messages.innerHTML += 'join user: "' + JSON.stringify(data) + '"<br/>';
-
-        });
-
-      socket.on('list user',
-         function(data) {
-           messages.innerHTML += 'list users: "' + JSON.stringify(data)+ '"<br/>';
-
-        });
-
-      socket.on('action',
-         function(data) {
-    	  console.log("data: " + data);
-           messages.innerHTML += data.name + ' action: "' + data.x + ", " + data.y + ", " + data.z + '<br/>';
-
-           socket.emit('myResponseType', { my: 'data' });
-        });
-
-      socket.on('colorMessage',
-         function(data) { 
-            document.getElementById('colorsquare').style.background = data.color;
-         });
-    </script>
-
+			<input id="txtEnviar"
+				style="width: 100%; color: #fff; background: #000; font-family: monospace;" />
+		</div>
+	</div>
 </body>
+<script>
+	var messages = document.getElementById('messages');
+	var btnlimpiar = document.getElementById("btnlimpiar");
+	var txtEnviar = document.getElementById("txtEnviar");
+
+	btnlimpiar.addEventListener("click", function(e) {
+		messages.innerHTML = "";
+
+	});
+
+	txtEnviar.addEventListener("keydown", function(e) {
+		if (e.keyCode == 13) {
+			var jsend = txtEnviar.value.split(",", 2);
+
+			if (jsend.length > 0) {
+				socket.emit(jsend[0], jsend[1]);
+				messages.innerHTML += ">> " + jsend + '<br/>';
+				txtEnviar.value = "";
+			}
+		}
+	});
+
+	var socket = io.connect('http://ioserver-antrax.rhcloud.com:8000');
+	//var socket = io.connect('http://192.168.0.92:8000');
+	socket.on('connect', function() {
+		messages.innerHTML += 'Conectado<br/>';
+		socket.emit('nick', "consola");
+	});
+
+	socket.on('message', function(data) {
+		messages.innerHTML += 'message : ' + JSON.stringify(data) + '<br/>';
+		socket.emit('myResponseType', {
+			my : 'data'
+		});
+	});
+
+	socket.on('consola', function(data) {
+		messages.innerHTML += 'server : ' + JSON.stringify(data) + '<br/>';		
+	});
+
+	socket.on('join user', function(data) {
+		messages.innerHTML += 'join user: "' + JSON.stringify(data) + '"<br/>';
+	});
+
+	socket.on('list user', function(data) {
+		messages.innerHTML += 'list user: "' + JSON.stringify(data) + '"<br/>';
+	});
+	socket.on('chan', function(data) {
+		messages.innerHTML += 'list chan: "' + JSON.stringify(data) + '"<br/>';
+	});
+
+	socket.on('action', function(data) {
+		console.log("data: " + data);
+		messages.innerHTML += data.name + ' action: "' + data.x + ", " + data.y + ", " + data.z + '<br/>';
+		socket.emit('myResponseType', {
+			my : 'data'
+		});
+	});
+</script>
 </html>
